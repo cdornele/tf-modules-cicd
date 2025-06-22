@@ -1,0 +1,15 @@
+name: pull request validation
+on:
+  workflow_call:
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  terraform-validate:
+    uses: ./.github/workflows/terraform-validate.yml
+  terraform-lint:
+    uses: ./.github/workflows/terraform-lint.yml
+  terraform-security:
+    needs: [terraform-lint, terraform-validate]
+    uses: ./.github/workflows/terraform-security.yml

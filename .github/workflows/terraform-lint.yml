@@ -1,0 +1,45 @@
+name: terraform lint
+on:
+    workflow_call:
+
+jobs:
+  terraform-lint:
+    name: Terraform Lint (tflint)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup tflint
+        uses: terraform-linters/setup-tflint@v4
+
+      - name: Run tflint in each module and capture output
+        id: tflint
+        run: |
+          found_error=0
+          modules_found=0
+          rm -f tflint_output.txt
+          for dir in modules; do
+            if [ -d "$dir" ]; then
+              modules_found=1
+              echo "Running tflint in $dir" | tee -a tflint_output.txt
+              tflint --chdir="$dir" 2>&1 | tee -a tflint_output.txt
+              if [ ${PIPESTATUS[0]} -ne 0 ]; then
+                found_error=1
+              fi
+            fi
+          done
+          if [ $modules_found -eq 0 ]; then
+            echo "No module directories found in modules/"
+            exit 0
+          fi
+          echo "TFLINT_RESULT=$found_error" >> $GITHUB_ENV
+
+      - name: Create GitHub Issue if TFLint error
+        if: env.TFLINT_RESULT == '1'
+        uses: peter-evans/create-issue-from-file@v5
+        with:
+          title: "TFLint found issues in modules"
+          content-filepath: ./tflint_output.txt
+          labels: "tflint,bug"
+          token: ${{ secrets.GITHUB_TOKEN }}
