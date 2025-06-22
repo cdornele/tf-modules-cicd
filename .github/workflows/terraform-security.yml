@@ -1,10 +1,6 @@
 name: terraform security scans
 on:
   workflow_call:
-    secrets:
-      repo_token:
-        description: 'GitHub token with permissions to create issues'
-        required: true
 
 jobs:
   tfsec:
