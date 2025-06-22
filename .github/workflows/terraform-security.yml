@@ -1,13 +1,18 @@
 name: terraform security scans
 on:
   workflow_call:
+    inputs:
+    secrets:
+      repo_token:
+        description: 'GitHub token with permissions to create issues'
+        required: true
 
 jobs:
   tfsec:
     name: Terraform Security & Best Practices (tfsec)
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
       issues: write
       security-events: write
     steps:
